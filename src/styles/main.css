@@ -365,3 +365,67 @@ body.touch #hud-center-msg { top: 18%; font-size: 15px; }
   .upgrade-item .u-desc { font-size: 12px; }
   .upgrade-item button { padding: 6px 10px; }
 }
+
+/* phones in landscape: weapon / ammo / slots move to the free bottom-centre so nothing collides with the buttons */
+@media (max-height: 520px) {
+  body.touch .hud-bottom-right {
+    top: auto; right: auto; left: 50%; bottom: calc(6px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    padding: 0; text-align: center; display: flex; flex-direction: column; align-items: center;
+  }
+  body.touch #hud-weapon-name { font-size: 12px; letter-spacing: 2px; }
+  body.touch #hud-ammo { font-size: 24px; }
+  body.touch #hud-weapon-slots { justify-content: center; margin-top: 4px; }
+  body.touch #hud-weapon-slots span { width: 30px; height: 26px; font-size: 13px; }
+  body.touch .tc-use { bottom: calc(150px + env(safe-area-inset-bottom)); right: calc(150px + env(safe-area-inset-right)); }
+  body.touch #hud-points-feed { top: 90px; }
+}
+
+/* very short viewports (phone landscape with Safari bars / tab bar) */
+@media (max-height: 360px) {
+  .title { margin-bottom: 8px; }
+  .title-main { font-size: clamp(30px, 6vw, 46px); }
+  .title-sub { font-size: 10px; margin-top: 4px; }
+  .menu-btn { font-size: 13px; padding: 6px 18px; min-width: 190px; }
+  .menu-nav { gap: 5px; }
+  .menu-hint { display: none; }
+  .menu-title { font-size: 20px; margin-bottom: 8px; }
+  .menu-inner.compact { padding: 10px 18px; }
+  .stats { gap: 2px; margin-bottom: 8px; }
+  .stats > div { font-size: 12px; padding-bottom: 2px; }
+  .stat-val { font-size: 14px; }
+  #gameover-menu .menu-nav { flex-direction: row; justify-content: center; gap: 8px; }
+  #gameover-menu .menu-btn, #pause-menu .menu-btn { min-width: 150px; }
+  #pause-menu .menu-nav { display: grid; grid-template-columns: 1fr 1fr; }
+}
+
+/* between-wave buttons get their own row so LIGHT / ☰ never move under the player's thumb */
+.tc-top2 { position: absolute; top: calc(56px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: flex; gap: 10px; }
+body.touch #hud-center-msg { top: calc(108px + env(safe-area-inset-top)); }
+@media (max-height: 520px) {
+  .tc-top { top: calc(6px + env(safe-area-inset-top)); }
+  .tc-top2 { top: calc(48px + env(safe-area-inset-top)); }
+  .tc-mini { height: 34px; }
+  body.touch #hud-center-msg { top: calc(90px + env(safe-area-inset-top)); }
+}
+body.touch #hud-msg { top: calc(150px + env(safe-area-inset-top)); }
+@media (max-height: 520px) { body.touch #hud-msg { top: calc(118px + env(safe-area-inset-top)); font-size: 12px; letter-spacing: 1.5px; white-space: normal; max-width: 60vw; } }
+
+/* upgrade shop on phones: three compact columns, the close button always visible */
+@media (max-height: 520px) {
+  #upgrade-menu .menu-inner { padding: 8px 12px 0; min-width: 0; width: min(96vw, 860px); }
+  #upgrade-menu .menu-title { font-size: 18px; letter-spacing: 4px; margin: 0; }
+  .upgrade-points { font-size: 14px; margin-bottom: 6px; }
+  .upgrade-list { grid-template-columns: repeat(3, 1fr) !important; gap: 6px; margin-bottom: 6px; }
+  .upgrade-item { padding: 5px 8px; gap: 1px; }
+  .upgrade-item .u-name { font-size: 13px; }
+  .upgrade-item .u-desc { font-size: 11px; line-height: 1.2; }
+  .upgrade-item .u-row { margin-top: 2px; }
+  .upgrade-item .u-level { font-size: 10px; }
+  .upgrade-item button { font-size: 11px; padding: 4px 8px; letter-spacing: 1px; }
+  #btn-upgrade-close { position: sticky; bottom: 0; margin: 4px 0 8px; width: 100%; background: rgba(20,8,10,0.95); }
+}
+/* iOS Safari: vh includes the area behind the browser toolbars; dvh is the visible height */
+.menu-inner.compact { max-height: 94vh; max-height: 94dvh; }
+/* keep menus clear of the Dynamic Island / notch in landscape */
+.menu { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); box-sizing: border-box; }
+@media (max-height: 520px) { #upgrade-menu .menu-inner { width: calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right) - 12px); } }

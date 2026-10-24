@@ -141,8 +141,11 @@ export class PlayerController {
     const rec = Math.min(1, dt * 9);
     const rp = this.recoilPitch * rec, ry = this.recoilYaw * rec;
     this.recoilPitch -= rp; this.recoilYaw -= ry;
-    this.pitch = Math.max(-1.5, Math.min(1.5, this.pitch + rp * 0.35));
-    this.yaw += ry * 0.35;
+    // part of the recoil 'climbs' permanently on desktop (you pull the mouse down);
+    // on touch screens the view springs fully back so thumbs don't have to fight it
+    const climb = this.input.touch ? 0 : 0.35;
+    this.pitch = Math.max(-1.5, Math.min(1.5, this.pitch + rp * climb));
+    this.yaw += ry * climb;
 
     this.landDip += (0 - this.landDip) * Math.min(1, dt * 6);
     this.shake = Math.max(0, this.shake - dt * 2.2);

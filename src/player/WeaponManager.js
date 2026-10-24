@@ -126,7 +126,7 @@ export class WeaponManager {
     if (input.wasPressed('KeyR')) w.startReload(game.player.mods, game.audio);
     const firing = input.mouseDown(0);
     const pressed = input.mousePressed(0);
-    if (ready && (firing || pressed)) {
+    if (ready && (firing || pressed || w.pressBuffer > 0)) {
       const cam = game.camera;
       const origin = cam.position.clone();
       const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);

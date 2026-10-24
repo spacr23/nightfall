@@ -64,8 +64,11 @@ export class Weapon {
    */
   tryFire(ctx, pressed) {
     const cfg = this.cfg;
+    // semi-auto: remember a press for a moment so quick taps (touch!) aren't lost to the fire-rate cooldown
+    if (pressed) this.pressBuffer = 0.22;
     if (this.cooldown > 0 || this.reloading > 0 || this.swing > 0) return false;
-    if (!cfg.auto && !pressed) return false;
+    if (!cfg.auto && !(this.pressBuffer > 0)) return false;
+    this.pressBuffer = 0;
     if (this.isMelee) {
       this.swing = 0.62 / (ctx.mods.meleeSpeedMul || 1);
       this.swingTotal = this.swing;
@@ -112,6 +115,7 @@ export class Weapon {
   update(dt, game, view) {
     const cfg = this.cfg;
     if (this.cooldown > 0) this.cooldown -= dt;
+    if (this.pressBuffer > 0) this.pressBuffer -= dt;
     if (this.flashTimer > 0) { this.flashTimer -= dt; if (this.model.flash) this.model.flash.visible = this.flashTimer > 0; }
     else if (this.model.flash) this.model.flash.visible = false;
     if (this._autoReloadIn !== undefined) {

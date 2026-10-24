@@ -36,9 +36,11 @@ export class TouchControls {
       <button class="tc-btn tc-use hidden" data-act="use"><span>USE</span></button>
       <div class="tc-top">
         <button class="tc-mini" data-act="light" title="Flashlight">LIGHT</button>
+        <button class="tc-mini" data-act="menu" title="Menu">☰</button>
+      </div>
+      <div class="tc-top2">
         <button class="tc-mini tc-upg hidden" data-act="upgrades">UPGRADES</button>
         <button class="tc-mini tc-next hidden" data-act="next">NEXT WAVE ▸</button>
-        <button class="tc-mini" data-act="menu" title="Menu">☰</button>
       </div>`;
     this.stick = r.querySelector('.tc-stick');
     this.knob = r.querySelector('.tc-knob');

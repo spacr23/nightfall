@@ -5,6 +5,19 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
 import { Game } from './game/Game.js';
 
 const canvas = document.getElementById('game-canvas');
+
+// Surface unexpected runtime errors on screen (there is no console on a phone)
+let shownErrors = 0;
+function showRuntimeError(msg) {
+  if (shownErrors++ > 2) return;
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:999;max-width:70vw;background:rgba(80,0,0,0.85);color:#fff;font:12px monospace;padding:6px 8px;border-radius:4px;pointer-events:none';
+  el.textContent = `Error: ${msg}`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 8000);
+}
+window.addEventListener('error', (e) => showRuntimeError(e.message || String(e.error)));
+window.addEventListener('unhandledrejection', (e) => { const r = e.reason; if (r && r.name === 'WrongDocumentError') return; showRuntimeError(r && r.message ? r.message : String(r)); });
 const loading = document.getElementById('loading');
 
 function fail(err) {
