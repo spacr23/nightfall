@@ -218,15 +218,17 @@ export class EnemyAI {
     const e = this.e, game = e.game, atk = e.cfg.attack;
     const pp = game.player.position;
     this.attackT += dt;
-    const total = atk.windup + (atk.recover ?? 0.35);
+    // weaker early-wave enemies telegraph their attacks longer
+    const windup = atk.windup / Math.min(1, e.aggression + 0.15);
+    const total = windup + (atk.recover ?? 0.35);
     e.attackAnim = Math.min(1, this.attackT / total);
     this.faceTowards(pp, dt, 10);
     // slight lunge forward during windup
-    if (this.attackT < atk.windup && dist > 1.0) {
+    if (this.attackT < windup && dist > 1.0) {
       _d.subVectors(pp, e.body.pos).setY(0).normalize();
       this.desired.copy(_d).multiplyScalar(e.cfg.walkSpeed * 0.8);
     }
-    if (!this.attackHit && this.attackT >= atk.windup) {
+    if (!this.attackHit && this.attackT >= windup) {
       this.attackHit = true;
       _d.subVectors(pp, e.body.pos).setY(0);
       const fwd = _t.set(Math.sin(e.yaw), 0, Math.cos(e.yaw));
@@ -255,7 +257,8 @@ export class EnemyAI {
     for (const st of nav.stairs) {
       const r = st.rect;
       if (pos.x < r.minX - 0.2 || pos.x > r.maxX + 0.2 || pos.z < r.minZ - 0.2 || pos.z > r.maxZ + 0.2) continue;
-      if (pos.y < st.low.pos.y - 0.5 || pos.y > st.high.pos.y + 0.8) continue;
+      // only while actually standing on the steps (not on the floor in front of / behind them)
+      if (pos.y < st.low.pos.y + 0.12 || pos.y > st.high.pos.y - 0.12) continue;
       let end = null;
       if (tLayer === st.high.layer) end = st.high.pos;
       else if (tLayer === st.low.layer) end = st.low.pos;
@@ -295,7 +298,7 @@ export class EnemyAI {
     }
     if (this.path && this.path.length) {
       let wp = this.path[this.pathIdx];
-      while (wp && Math.hypot(wp.x - pos.x, wp.z - pos.z) < 0.9 && this.pathIdx < this.path.length - 1) { this.pathIdx++; wp = this.path[this.pathIdx]; }
+      while (wp && Math.hypot(wp.x - pos.x, wp.z - pos.z) < 0.45 && this.pathIdx < this.path.length - 1) { this.pathIdx++; wp = this.path[this.pathIdx]; }
       // skip ahead when a later waypoint is directly reachable
       if (this.pathIdx + 1 < this.path.length) {
         const nxt = this.path[this.pathIdx + 1];
@@ -370,9 +373,9 @@ export class EnemyAI {
       // still stuck: relocate to a nearby walkable cell while the player isn't looking
       const game = e.game;
       const seen = game.physics.lineOfSight(game.player.controller.eyePosition, e.headSphere.c);
-      if (!seen) {
+      if (!seen || this.stuckN >= 8) {
         const p = game.nav.randomWalkable(e.layer, e.body.pos, 1.5, 5);
-        if (p) { e.body.pos.copy(p); e.body.pos.y += 0.1; e.body.vel.set(0, 0, 0); }
+        if (p) { e.body.pos.copy(p); e.body.pos.y = Math.max(e.body.pos.y, game.physics.groundHeight(p.x, p.z, e.body.pos.y + 0.5)) + 0.1; e.body.vel.set(0, 0, 0); }
         this.stuckN = 0;
       }
     }

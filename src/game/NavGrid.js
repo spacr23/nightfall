@@ -77,17 +77,20 @@ export class NavGrid {
         for (const s of this.stairs) {
           if (s.rect && x >= s.rect.minX && x <= s.rect.maxX && z >= s.rect.minZ && z <= s.rect.maxZ && (s.low.layer === layer || s.high.layer === layer)) stairCell = true;
         }
-        if (!stairCell && (g === -Infinity || g < refY - 1.0 || g > refY + 1.0)) continue;
+        // stair cells only count where the step height matches this floor (bottom steps below, top steps above)
+        if (g === -Infinity || g < refY - 1.0 || g > refY + 1.0) continue;
         // Blocked by a wall/prop in the body height range?
         let blocked = false;
         const base = g === -Infinity ? refY : g;
         const lo = base + 0.6, hi = base + 1.6;
         this.physics.query(x - probe, z - probe, x + probe, z + probe, (b) => {
-          if (b.step || (b.userData && b.userData.type === 'door')) return;
+          if (b.userData && b.userData.type === 'door') return;
+          // stair steps are walkable where they're low, but the tall part of a staircase is a wall from the side
+          if (b.step) { if (b.max.y > base + 1.0 && b.min.y < hi && b.min.x < x + probe && b.max.x > x - probe && b.min.z < z + probe && b.max.z > z - probe) { blocked = true; return false; } return; }
           if (b.min.x >= x + probe || b.max.x <= x - probe || b.min.z >= z + probe || b.max.z <= z - probe) return;
           if (b.max.y > lo && b.min.y < hi) { blocked = true; return false; }
         });
-        if (blocked && !stairCell) continue;
+        if (blocked) continue;
         arr[cz * this.w + cx] = 1;
       }
       this.layers[layer] = arr;
@@ -96,13 +99,24 @@ export class NavGrid {
   }
 
   /** Force cells walkable (door openings narrower than two cells). */
-  carve(layer, minX, minZ, maxX, maxZ) {
+  carve(layer, minX, minZ, maxX, maxZ, floorY) {
     const arr = this.layers[layer]; if (!arr) return;
     const [x0, z0] = this.toCell(minX, minZ), [x1, z1] = this.toCell(maxX, maxZ);
     for (let cz = z0; cz <= z1; cz++) for (let cx = x0; cx <= x1; cx++) {
       if (!this.inBounds(cx, cz)) continue;
       const [wx, wz] = this.toWorld(cx, cz);
       if (wx < minX || wx > maxX || wz < minZ || wz > maxZ) continue;
+      if (floorY !== undefined) {
+        // only open the cell if nothing but the (thin) wall is near its centre
+        const lo = floorY + 0.4, hi = floorY + 1.6, r = 0.22;
+        let blocked = false;
+        this.physics.query(wx - r, wz - r, wx + r, wz + r, (bx) => {
+          if (bx.step || (bx.userData && bx.userData.type === 'door')) return;
+          if (bx.min.x >= wx + r || bx.max.x <= wx - r || bx.min.z >= wz + r || bx.max.z <= wz - r) return;
+          if (bx.max.y > lo && bx.min.y < hi) { blocked = true; return false; }
+        });
+        if (blocked) continue;
+      }
       arr[cz * this.w + cx] = 1;
     }
   }
@@ -231,19 +245,22 @@ export class NavGrid {
     return pts;
   }
 
-  /** Grid line of sight (supercover Bresenham). */
+  /** Conservative grid line of sight: dense sampling, and diagonal steps need both side cells free. */
   _los(layer, a, b) {
-    let [x0, z0] = a; const [x1, z1] = b;
-    const dx = Math.abs(x1 - x0), dz = Math.abs(z1 - z0);
-    const sx = x0 < x1 ? 1 : -1, sz = z0 < z1 ? 1 : -1;
-    let err = dx - dz;
-    for (;;) {
-      if (!this.isWalkable(layer, x0, z0)) return false;
-      if (x0 === x1 && z0 === z1) return true;
-      const e2 = 2 * err;
-      if (e2 > -dz) { err -= dz; x0 += sx; if (!this.isWalkable(layer, x0, z0)) return false; }
-      if (e2 < dx) { err += dx; z0 += sz; }
+    const [x0, z0] = a, [x1, z1] = b;
+    const dx = x1 - x0, dz = z1 - z0;
+    const n = Math.ceil(Math.max(Math.abs(dx), Math.abs(dz)) * 3) + 1;
+    let px = x0, pz = z0;
+    if (!this.isWalkable(layer, x0, z0)) return false;
+    for (let i = 1; i <= n; i++) {
+      const t = i / n;
+      const cx = Math.floor(x0 + 0.5 + dx * t), cz = Math.floor(z0 + 0.5 + dz * t);
+      if (cx === px && cz === pz) continue;
+      if (!this.isWalkable(layer, cx, cz)) return false;
+      if (cx !== px && cz !== pz && (!this.isWalkable(layer, px, cz) || !this.isWalkable(layer, cx, pz))) return false;
+      px = cx; pz = cz;
     }
+    return true;
   }
 
   /** Random walkable point on layer 0 within radius range of a center (for wandering). */

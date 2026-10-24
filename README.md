@@ -2,6 +2,8 @@
 
 Een 3D first-person horror survival shooter die volledig in de browser draait. Overleef golf na golf vampiers, weerwolven, geesten, elitemonsters en uiteindelijk **The Nightfather**, de eindbaas uit het donkere bos.
 
+![De monsters van NIGHTFALL](screenshots/nightfall-monsters.png)
+
 Gebouwd met **Three.js**, **Vite** en de **Web Audio API**. Alle 3D-modellen, texturen, animaties en geluiden worden procedureel gegenereerd tijdens het laden: er zijn geen externe assets.
 
 ## Functionaliteiten
@@ -13,13 +15,13 @@ Gebouwd met **Three.js**, **Vite** en de **Web Audio API**. Alle 3D-modellen, te
   - *Het donkere bos*: ruim 1.300 bomen, rotsen, omgevallen stammen, hutten, een verlaten schuilplaats, open plekken en een rituele steencirkel waar de eindbaas ontwaakt.
   - Verbonden via een oprijlaan, vervallen poorten en een smal pad achter het landhuis.
 - **Vijf wapens**: pistool, shotgun (9 hagelkorrels), assault rifle (automatisch), Holy Crossbow (zilveren projectielen met lichtspoor, ×4 schade tegen geesten) en een brandbijl (melee). Raycast-hits met hoofd- en lichaamstreffers, munitie, herladen, mondingsflitsen, inslagen, kogelgaten en tracers.
-- **Vier vijandtypen + elites + eindbaas**, elk met eigen model, animatie, gedrag en geluid:
+- **Vier vijandtypen + elites + eindbaas**, elk met een eigen gesculpt 3D-model (organische vormen, huid-, vacht- en stoftexturen, wapperende capes en gewaden), animatie, gedrag en geluid:
   - Vampier: snel, korte dash-aanvallen. *Ancient Vampire*: teleporteert achter je en steelt leven.
   - Weerwolf: ziet je van ver, sprint in een flankerende boog en springt. *Alpha Werewolf*: brul die de roedel opjaagt, grondslag bij landing.
   - Geest: zweeft, fase-verschuift (kogels gaan er dan doorheen), teleporteert en vuurt spectrale energie. *Revenant*: gepantserde geestridder met salvo's.
   - *The Nightfather*: enorm gewei-monster met klauwslag, grondschokgolf (spring om te ontwijken), charge, bloedsalvo's, oproepen van handlangers en woede-fase.
 - **Herbruikbare vijand-AI** met toestanden Idle, Patrol, Investigate, Chase, Attack, Stagger en Dead, gelaagd A*-navigatiegrid (kelder, begane grond, bovenverdieping) met trapportalen, deuren openen, separatie, gehoor en anti-vastloopherstel.
-- **Golfsysteem**: 5 → 8 → 12 → 16 → 20 vijanden, elites vanaf golf 5, baasgolf op 10, daarna eindeloos met stijgende HP, schade, snelheid en agressie. Spawnpunten buiten zicht, geen dubbele golfstarts, anti-stall.
+- **Golfsysteem**: 5 → 8 → 12 → 16 → 20 vijanden. De eerste drie golven zijn een rustige opwarming (zwakkere, tragere vijanden, minder tegelijk, extra munitie tussen golven en elke kill geeft wat leven terug), elites vanaf golf 5, baasgolf op 10, daarna eindeloos met stijgende HP, schade, snelheid en agressie. Spawnpunten buiten zicht, geen dubbele golfstarts, anti-stall.
 - **Punten en upgrades** (TAB tussen golven): gezondheid, schade, herlaadsnelheid, munitiecapaciteit, bewegingssnelheid, betere zaklamp, pantser, munitie, medkit en het vrijspelen van wapens.
 - **Verkenning**: munitiekisten, medkits, pantser, leesbare notities, wapens op logische plekken en drie geheime voorraden.
 - **Horrorsfeer**: maanlicht met schaduwen, mist, flikkerende lampen en kaarsen, bliksem, gloeiende ogen, schaduwfiguren tussen de bomen, gezichten in ramen en spiegels, en een zeldzame volledige jumpscare.

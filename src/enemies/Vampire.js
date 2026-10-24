@@ -10,7 +10,8 @@ const vampireBehavior = {
     const e = ai.e;
     if (ai.state !== 'chase' || ai.override || !ai.canSee) return;
     const d = ai.dist;
-    if ((ai.cd.dash || 0) <= 0 && d > 4.5 && d < 15 && Math.abs(e.game.player.position.y - e.body.pos.y) < 1.2) {
+    const earlyWave = !e.game.waves || e.game.waves.wave < 3;
+    if (!earlyWave && (ai.cd.dash || 0) <= 0 && d > 4.5 && d < 15 && Math.abs(e.game.player.position.y - e.body.pos.y) < 1.2) {
       ai.cd.dash = (e.isElite ? 4 : 6) + Math.random() * 3;
       _d.subVectors(e.game.player.position, e.body.pos).setY(0).normalize();
       const speed = e.isElite ? 17 : 14;

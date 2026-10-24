@@ -150,6 +150,19 @@ export class Physics {
       pos[axis] = orig;
       blocked = true;
       body.lastHit = hit;
+      // Corner slide: if we only clip the edge of the obstacle, nudge sideways around it (doorframes!)
+      const perp = axis === 'x' ? 'z' : 'x';
+      const overNeg = hit.max[perp] - (pos[perp] - hw); // overlap if we move toward +perp
+      const overPos = (pos[perp] + hw) - hit.min[perp];
+      const clip = Math.min(overNeg, overPos);
+      if (clip > 0 && clip < hw * 0.9) {
+        const dir = overNeg < overPos ? 1 : -1;
+        const step = Math.min(clip + 0.01, Math.abs(delta) * 0.8 + 0.01);
+        const o2 = pos[perp];
+        pos[perp] += dir * step;
+        setBounds(pos); min.y += 0.02;
+        if (this.overlap(min, max, filter)) pos[perp] = o2;
+      }
       // push to contact surface
       const sign = Math.sign(delta);
       const edge = sign > 0 ? hit.min[axis] - hw - 0.001 : hit.max[axis] + hw + 0.001;

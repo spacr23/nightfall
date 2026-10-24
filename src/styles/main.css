@@ -256,3 +256,6 @@ body.low-health #vignette { opacity: 1; background: radial-gradient(ellipse at c
 .upgrade-item .u-desc { font-size: 13px; }
 @media (max-width: 1000px) { .upgrade-list { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 640px) { .upgrade-list { grid-template-columns: 1fr; } }
+
+#resume-menu { background: rgba(3,4,7,0.25); }
+.resume-click { position: absolute; inset: 0; width: 100%; height: 100%; background: transparent; border: 0; color: #e7ebf2; font-family: var(--font-title); font-size: 26px; letter-spacing: 8px; cursor: pointer; text-shadow: 0 0 18px rgba(183,51,42,0.5), 0 3px 10px #000; animation: pulse 1.6s infinite; }

@@ -218,10 +218,20 @@ export class Game {
   closeUpgrades() { this.resume(); }
 
   onLockChange(locked) {
-    if (!locked && this.state.is('playing')) this.pause();
+    if (locked || !this.state.is('playing')) return;
+    if (this.hud.noteOpen || performance.now() - (this._noteClosedAt || 0) < 400) {
+      // Esc while reading: close the note instead of opening the pause menu
+      this.hud.showNote(null);
+      this.state.set('paused');
+      this.menus.showScreen('resume');
+      return;
+    }
+    this.pause();
   }
 
   onEscape() {
+    if (this.state.is('playing') && this.hud.noteOpen) { this.hud.showNote(null); this._noteClosedAt = performance.now(); return; }
+    if (this.state.is('paused') && this.menus.current === 'resume') { this.menus.showScreen('pause'); return; }
     if (this.state.is('paused') && this.menus.current !== 'pause') this.menus.showScreen('pause');
     else if (this.state.is('upgrade')) this.closeUpgrades();
   }
@@ -279,6 +289,8 @@ export class Game {
     if (head) { pts = Math.round(pts * 1.5); label = e.isElite ? label + ' · HEADSHOT' : 'HEADSHOT'; }
     if (info.weapon && info.weapon.isMelee) { pts += 30; label += ' · AXE'; }
     p.addPoints(pts, label);
+    // each kill restores a little health, rewarding aggression and accuracy
+    p.health.heal(head ? 6 : 4);
     if (e.isBoss) { this.audio.play('bossDead'); this.hud.bossBar(false); this.player.controller.addShake(1); }
   }
 

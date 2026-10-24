@@ -22,7 +22,7 @@ export class PlayerHealth {
       dmg -= absorbed;
     }
     this.hp = Math.max(0, this.hp - dmg);
-    this.regenDelay = 6;
+    this.regenDelay = 5;
     this.invuln = 0.08; // de-duplicates simultaneous hits from one swing
     if (this.hp <= 0) this.dead = true;
     return dmg;
@@ -35,7 +35,7 @@ export class PlayerHealth {
     if (this.invuln > 0) this.invuln -= dt;
     if (this.dead) return;
     if (this.regenDelay > 0) this.regenDelay -= dt;
-    // slow regeneration up to 35% of max health, encouraging the use of medkits
-    else if (this.hp < this.max * 0.35) this.hp = Math.min(this.max * 0.35, this.hp + 2.5 * dt);
+    // regeneration up to 50% of max health, encouraging the use of medkits
+    else if (this.hp < this.max * 0.5) this.hp = Math.min(this.max * 0.5, this.hp + 4 * dt);
   }
 }

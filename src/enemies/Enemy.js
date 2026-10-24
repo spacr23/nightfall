@@ -221,6 +221,15 @@ export class Enemy {
     if (this.roarAnim > 0) { this.roarAnim -= dt; if (P.head) P.head.rotation.x = -0.4 * Math.sin(Math.min(1, this.roarAnim) * Math.PI); }
     else if (P.head) P.head.rotation.x *= 0.9;
     if (this.staggerTime > 0) this.staggerTime = Math.max(0, this.staggerTime - dt);
+    // head tracks the player, cloth & shroud simulation
+    if (P.head && this.alive) {
+      const pp = this.game.player.position;
+      let a = Math.atan2(pp.x - this.body.pos.x, pp.z - this.body.pos.z) - this.yaw;
+      while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI) a += Math.PI * 2;
+      const target = Math.max(-0.8, Math.min(0.8, a));
+      P.head.rotation.y += (target - P.head.rotation.y) * Math.min(1, dt * 5);
+    }
+    if (this.model.update && this.distanceToPlayer() < 45) this.model.update(dt, Math.min(1.2, gait), ph, this.game.time);
   }
 }
 

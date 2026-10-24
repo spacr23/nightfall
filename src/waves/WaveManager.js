@@ -10,8 +10,8 @@ import { SpawnManager } from './SpawnManager.js';
  */
 const FIXED = {
   1: { vampire: 5 },
-  2: { vampire: 6, ghost: 2 },
-  3: { vampire: 7, ghost: 3, werewolf: 2 },
+  2: { vampire: 7, ghost: 1 },
+  3: { vampire: 9, ghost: 2, werewolf: 1 },
   4: { vampire: 8, ghost: 4, werewolf: 4 },
   5: { vampire: 9, ghost: 5, werewolf: 5, ancientVampire: 1 },
   6: { vampire: 9, ghost: 6, werewolf: 8, ancientVampire: 1 },
@@ -44,21 +44,31 @@ export class WaveManager {
   start() {
     this.reset();
     this.state = 'intermission';
-    this.timer = 8;
+    this.timer = 12;
   }
 
   get alive() { let n = 0; for (const e of this.game.enemies) if (e.alive) n++; return n; }
   get remaining() { return this.queue.length + this.alive; }
   get inIntermission() { return this.state === 'intermission'; }
 
+  /** Difficulty curve: the first three waves are a gentle warm-up, then it ramps steadily. */
   scaleFor(w) {
+    const EARLY = {
+      1: { hp: 0.55, dmg: 0.35, speed: 0.85, aggression: 0.6 },
+      2: { hp: 0.65, dmg: 0.42, speed: 0.88, aggression: 0.68 },
+      3: { hp: 0.75, dmg: 0.47, speed: 0.92, aggression: 0.74 },
+    };
+    if (EARLY[w]) return { ...EARLY[w] };
     return {
-      hp: w === 1 ? 0.7 : 1 + 0.11 * (w - 1),
-      dmg: 1 + 0.05 * (w - 1),
-      speed: Math.min(1.25, 1 + 0.015 * (w - 1)),
-      aggression: Math.min(1.7, 1 + 0.05 * (w - 1)),
+      hp: 0.92 + 0.11 * (w - 4),
+      dmg: 0.68 + 0.07 * (w - 4),
+      speed: Math.min(1.25, 0.97 + 0.02 * (w - 4)),
+      aggression: Math.min(1.7, 0.9 + 0.07 * (w - 4)),
     };
   }
+
+  /** How many enemies may be alive at once. */
+  capFor(w) { return w === 1 ? 3 : w === 2 ? 3 : w === 3 ? 4 : w === 4 ? 8 : w === 5 ? 12 : 22; }
 
   compose(w) {
     let comp = FIXED[w];
@@ -116,10 +126,10 @@ export class WaveManager {
         break;
       case 'active': {
         this.spawnTimer -= dt;
-        const cap = this.maxAlive;
+        const cap = Math.min(this.maxAlive, this.capFor(this.wave));
         if (this.queue.length && this.spawnTimer <= 0 && this.alive < cap) {
           this.spawnNext();
-          this.spawnTimer = (this.wave <= 2 ? 1.4 : 0.8) + Math.random() * 0.6;
+          this.spawnTimer = (this.wave <= 2 ? 2.6 : this.wave === 3 ? 1.8 : 0.8) + Math.random() * 0.6;
         }
         this.antiStall(dt);
         if (!this.queue.length && this.alive === 0) this.waveCleared();
@@ -179,6 +189,13 @@ export class WaveManager {
     game.audio.play(this.boss ? 'bossDead' : 'waveClear');
     game.audio.setMusicIntensity(0.3);
     game.world.respawnPickups();
+    // resupply between waves: every owned gun gets two magazines, the pistol is topped up to half capacity
+    for (const w of game.weapons.list) {
+      if (!w.owned || w.isMelee) continue;
+      const cap = w.reserveCap(game.player.mods);
+      w.reserve = Math.min(cap, w.reserve + w.cfg.magSize * 2);
+      if (w.id === 'pistol') w.reserve = Math.max(w.reserve, Math.round(cap / 2));
+    }
     if (this.wave === FINAL_WAVE && !this.victoryShown) {
       this.victoryShown = true;
       game.hud.waveBanner('THE NIGHTFATHER FALLS', 'YOU SURVIVED THE HAUNTED GROUNDS · THE NIGHT GOES ON');

@@ -76,6 +76,7 @@ export class Weapon {
     }
     if (this.mag <= 0) {
       if (pressed) ctx.game.audio.play('dryfire');
+      if (pressed && this.reserve <= 0) ctx.game.hud.message('Out of ammo · grab an ammo crate or use the axe [5]', 2);
       if (this.reserve > 0) this.startReload(ctx.mods, ctx.game.audio);
       this.cooldown = 0.25;
       return false;
@@ -142,11 +143,15 @@ export class Weapon {
     this.swayY += ((view.mouseDY * 0.0006) - this.swayY) * Math.min(1, dt * 10);
     const base = mdl.hipPos.clone().lerp(mdl.adsPos, ads);
     const bob = view.bobAmount * (1 - ads * 0.85);
-    const bx = Math.cos(view.bobPhase) * 0.012 * bob * (view.sprinting ? 1.8 : 1);
-    const by = Math.abs(Math.sin(view.bobPhase)) * 0.012 * bob * (view.sprinting ? 1.8 : 1);
+    // blend into / out of the sprint pose smoothly instead of snapping
+    const sprintTarget = view.sprinting && !this.busy && this.cooldown <= 0 ? 1 : 0;
+    this.sprintBlend = (this.sprintBlend || 0) + (sprintTarget - (this.sprintBlend || 0)) * Math.min(1, dt * 7);
+    const sb = this.sprintBlend;
+    const bx = Math.cos(view.bobPhase) * 0.012 * bob * (1 + 0.8 * sb);
+    const by = Math.abs(Math.sin(view.bobPhase)) * 0.012 * bob * (1 + 0.8 * sb);
     g.position.set(base.x + bx + this.swayX, base.y - by + this.swayY - view.equip * 0.35, base.z + this.kick * (cfg.kickBack || 0.06));
     let rx = this.kick * (cfg.kickRot || 0.12) + this.swayY * 2, ry = this.swayX * 2, rz = 0;
-    if (view.sprinting && !this.busy) { rx -= 0.25; ry += 0.55; rz += 0.25; g.position.x -= 0.03; }
+    rx -= 0.25 * sb; ry += 0.55 * sb; rz += 0.25 * sb; g.position.x -= 0.03 * sb;
     // reload animation: dip & tilt
     if (this.reloading > 0) {
       const t = 1 - this.reloading / this.reloadTotal;

@@ -21,7 +21,8 @@ const werewolfBehavior = {
     if (e.enrageT > 0) { e.enrageT -= dt; if (e.enrageT <= 0) e.enrage = false; }
     if (ai.state !== 'chase' || ai.override) return;
     const d = ai.dist;
-    if (ai.canSee && (ai.cd.leap || 0) <= 0 && d > 3.5 && d < 9) {
+    const earlyWave = !game.waves || game.waves.wave < 4;
+    if (!earlyWave && ai.canSee && (ai.cd.leap || 0) <= 0 && d > 3.5 && d < 9) {
       ai.cd.leap = (e.isElite ? 3.5 : 5) + Math.random() * 3;
       _d.subVectors(game.player.position, e.body.pos).setY(0).normalize();
       const speed = Math.min(14, d * 1.9);

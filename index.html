@@ -58,7 +58,7 @@
       <div id="hud-wave-banner" class="hidden"><div class="banner-title">WAVE 1</div><div class="banner-sub">THEY ARE COMING</div></div>
       <div id="hud-interact" class="hidden">[E] Open door</div>
       <div id="hud-upgrade-hint" class="hidden">Press <b>TAB</b> to open upgrades</div>
-      <div id="hud-note" class="hidden"><div id="hud-note-text"></div><div class="note-close">[E] close</div></div>
+      <div id="hud-note" class="hidden"><div id="hud-note-text"></div><div class="note-close">[E] or [Esc] to close</div></div>
     </div>
 
     <!-- Main menu -->
@@ -79,6 +79,11 @@
       </div>
       <div class="menu-stats" id="menu-stats"></div>
       <div class="menu-footer">v1.0 · procedurally generated horror · best with headphones</div>
+    </div>
+
+    <!-- Shown after closing a note with Esc: the browser released the mouse, one click locks it again -->
+    <div id="resume-menu" class="screen menu hidden">
+      <button id="btn-continue" class="resume-click">CLICK TO CONTINUE</button>
     </div>
 
     <!-- Pause menu -->

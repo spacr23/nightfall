@@ -145,7 +145,7 @@ export function buildMansion(b) {
 
   // Library (west front)
   for (let i = 0; i < 4; i++) P.bookshelf(b, -14.55 + 0.2, 0, -61 - i * 2.5, 2.2, 3.4, Math.PI / 2);
-  for (let i = 0; i < 3; i++) P.bookshelf(b, -12 + i * 2.5, 0, -71.6 + 0.2, 2.2, 3.4, 0);
+  for (const x of [-13.2, -7.3]) P.bookshelf(b, x, 0, -71.6 + 0.2, 2.2, 3.4, 0); // leave the corridor door (x=-10) free
   P.table(b, -9.5, 0, -64.5, 2.4, 1.2, 0.8);
   P.chair(b, -9.5, 0, -63.4, Math.PI); P.chair(b, -10.6, 0, -65.6, 0.3, true);
   b.candle(-9.2, 0.84, -64.4); b.candle(-9.8, 0.84, -64.7, 0.8);

@@ -109,7 +109,7 @@ export class WorldBuilder {
       const cx = horizontal ? (a + b) / 2 : fixed, cz = horizontal ? fixed : (a + b) / 2;
       if (o.type === 'window') this.window(cx, baseY + bottom, cz, o.width, o.height, horizontal, thickness);
       if (o.type === 'door' && o.door !== false) this.door(cx, baseY, cz, o.width, o.height, horizontal, thickness, o);
-      if (o.type === 'door' && bottom < 0.3) this.navOpenings.push({ x: cx, z: cz, w: o.width, horizontal, layer: layerForY(baseY + 0.1, cx, cz) });
+      if (o.type === 'door' && bottom < 0.3) this.navOpenings.push({ x: cx, z: cz, w: o.width, horizontal, layer: layerForY(baseY + 0.1, cx, cz), y: baseY });
       cursor = b - start;
     }
     seg(start + cursor, start + len, 0, height);
@@ -397,8 +397,8 @@ export class WorldBuilder {
       this.navGrid.build();
       for (const o of this.navOpenings) {
         const a = o.w / 2 - 0.2, c = 0.8;
-        if (o.horizontal) this.navGrid.carve(o.layer, o.x - a, o.z - c, o.x + a, o.z + c);
-        else this.navGrid.carve(o.layer, o.x - c, o.z - a, o.x + c, o.z + a);
+        if (o.horizontal) this.navGrid.carve(o.layer, o.x - a, o.z - c, o.x + a, o.z + c, o.y);
+        else this.navGrid.carve(o.layer, o.x - c, o.z - a, o.x + c, o.z + a, o.y);
       }
     });
     this._validateSpawns();
@@ -515,8 +515,8 @@ export function toggleDoor(door, game) {
   if (door.locked) return;
   door.target = door.target ? 0 : 1;
   if (door.target) {
+    // the nav grid already treats every doorway as passable (enemies open doors they bump into)
     if (door.collider) { door.physics.removeBox(door.collider); door.collider = null; }
-    door.nav.setRectWalkable(door.layer, door.pos.x - door.size.w / 2, door.pos.z - door.size.d / 2, door.pos.x + door.size.w / 2, door.pos.z + door.size.d / 2, true);
   } else if (!door.collider) {
     door.collider = door.physics.addBoxCS(door.pos.x, door.pos.y, door.pos.z, door.size.w, door.size.h, door.size.d, { userData: door });
   }

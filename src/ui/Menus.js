@@ -19,7 +19,7 @@ export class Menus {
     this.game = game;
     this.screens = {
       main: $('main-menu'), pause: $('pause-menu'), settings: $('settings-menu'), controls: $('controls-menu'),
-      credits: $('credits-menu'), upgrade: $('upgrade-menu'), gameover: $('gameover-menu'),
+      credits: $('credits-menu'), upgrade: $('upgrade-menu'), gameover: $('gameover-menu'), resume: $('resume-menu'),
     };
     this.current = null;
     this.back = 'main';
@@ -52,6 +52,7 @@ export class Menus {
     this.click('btn-controls-back', () => this.showScreen(this.back));
     this.click('btn-credits-back', () => this.showScreen('main'));
     this.click('btn-resume', () => g.resume());
+    this.click('btn-continue', () => g.resume());
     this.click('btn-restart', () => g.restart());
     this.click('btn-pause-settings', () => { this.back = 'pause'; this.showScreen('settings'); });
     this.click('btn-pause-main', () => g.toMainMenu());

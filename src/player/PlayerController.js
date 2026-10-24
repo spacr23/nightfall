@@ -71,10 +71,12 @@ export class PlayerController {
     if (hasInput) wish.normalize();
 
     const wantSprint = inp.isDown('ShiftLeft') || inp.isDown('ShiftRight');
-    this.sprinting = wantSprint && f > 0 && this.stamina > 0.05 && !ads;
-    if (this.sprinting && hasInput) this.stamina = Math.max(0, this.stamina - dt * 0.16);
-    else this.stamina = Math.min(1, this.stamina + dt * (hasInput ? 0.12 : 0.22));
-    if (this.stamina <= 0.01) this.sprinting = false;
+    // exhausted players must recover a bit of stamina before sprinting again (prevents on/off flicker)
+    if (this.stamina <= 0.01) this.exhausted = true;
+    else if (this.stamina > 0.3) this.exhausted = false;
+    this.sprinting = wantSprint && f > 0 && hasInput && !this.exhausted && !ads;
+    if (this.sprinting) this.stamina = Math.max(0, this.stamina - dt * 0.14);
+    else this.stamina = Math.min(1, this.stamina + dt * (hasInput ? 0.14 : 0.24));
 
     let speed = this.walkSpeed * this.speedMul * (this.sprinting ? this.sprintMul : 1) * (ads ? 0.55 : 1);
     if (f < 0) speed *= 0.8;
