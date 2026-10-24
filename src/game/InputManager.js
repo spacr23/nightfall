@@ -1,5 +1,7 @@
+import { isTouchDevice } from './TouchControls.js';
+
 /**
- * Keyboard + mouse input with Pointer Lock.
+ * Keyboard + mouse input with Pointer Lock (desktop) or on-screen touch controls (iPhone / iPad).
  * Game logic reads `keys`, `mouseDelta`, and one-shot `pressed` events each frame.
  */
 export class InputManager {
@@ -19,6 +21,10 @@ export class InputManager {
     this._wantLock = false;
     // ?debug: treat the page as pointer-locked (for automated testing without a real mouse lock)
     this.debug = new URLSearchParams(window.location.search).has('debug');
+    // touch devices have no pointer lock: the touch overlay feeds analog movement and look deltas
+    this.touch = isTouchDevice();
+    this.moveAxis = { x: 0, y: 0, active: false };
+    this.touchSprint = false;
 
     document.addEventListener('keydown', (e) => {
       if (e.repeat) return;
@@ -32,12 +38,12 @@ export class InputManager {
     window.addEventListener('blur', () => { this.keys.clear(); this.mouseButtons.clear(); });
 
     document.addEventListener('mousemove', (e) => {
-      if (!this.locked) return;
+      if (!this.locked || this.touch) return;
       this.mouseDX += e.movementX || 0;
       this.mouseDY += e.movementY || 0;
     });
     document.addEventListener('mousedown', (e) => {
-      if (!this.locked) return;
+      if (!this.locked || this.touch) return;
       this.mouseButtons.add(e.button);
       this.mousePressedThisFrame.add(e.button);
       e.preventDefault();
@@ -60,7 +66,7 @@ export class InputManager {
   }
 
   async requestLock() {
-    if (this.debug) { this.locked = true; return true; }
+    if (this.debug || this.touch || !this.canvas.requestPointerLock) { this.locked = true; return true; }
     if (this.locked) return true;
     try {
       const p = this.canvas.requestPointerLock({ unadjustedMovement: true });
@@ -73,7 +79,7 @@ export class InputManager {
   }
 
   releaseLock() {
-    if (this.debug) { this.locked = false; return; }
+    if (this.debug || this.touch || !document.exitPointerLock) { this.locked = false; return; }
     if (document.pointerLockElement) document.exitPointerLock();
   }
 

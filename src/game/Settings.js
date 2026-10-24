@@ -18,8 +18,8 @@ export const QUALITY_PRESETS = {
 };
 
 export class Settings {
-  constructor() {
-    this.values = { ...DEFAULTS };
+  constructor(overrides = {}) {
+    this.values = { ...DEFAULTS, ...overrides };
     this.listeners = new Set();
     this.load();
   }

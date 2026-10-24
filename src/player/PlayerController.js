@@ -62,15 +62,22 @@ export class PlayerController {
     this.pitch = Math.max(-1.5, Math.min(1.5, this.pitch));
 
     // Movement intent
-    const f = (inp.isDown('KeyW') || inp.isDown('ArrowUp') ? 1 : 0) - (inp.isDown('KeyS') || inp.isDown('ArrowDown') ? 1 : 0);
-    const r = (inp.isDown('KeyD') || inp.isDown('ArrowRight') ? 1 : 0) - (inp.isDown('KeyA') || inp.isDown('ArrowLeft') ? 1 : 0);
+    let f = (inp.isDown('KeyW') || inp.isDown('ArrowUp') ? 1 : 0) - (inp.isDown('KeyS') || inp.isDown('ArrowDown') ? 1 : 0);
+    let r = (inp.isDown('KeyD') || inp.isDown('ArrowRight') ? 1 : 0) - (inp.isDown('KeyA') || inp.isDown('ArrowLeft') ? 1 : 0);
+    // analog joystick (touch): small deflection = slow walk
+    let analog = 1;
+    if (inp.moveAxis && inp.moveAxis.active) {
+      f = -inp.moveAxis.y; r = inp.moveAxis.x;
+      const m = Math.hypot(f, r);
+      if (m < 0.12) { f = 0; r = 0; } else analog = Math.min(1, (m - 0.12) / 0.7);
+    }
     this._fwd.set(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
     this._right.set(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
     const wish = this._wish.set(0, 0, 0).addScaledVector(this._fwd, f).addScaledVector(this._right, r);
     const hasInput = wish.lengthSq() > 0;
-    if (hasInput) wish.normalize();
+    if (hasInput) wish.normalize().multiplyScalar(analog);
 
-    const wantSprint = inp.isDown('ShiftLeft') || inp.isDown('ShiftRight');
+    const wantSprint = inp.isDown('ShiftLeft') || inp.isDown('ShiftRight') || !!inp.touchSprint;
     // exhausted players must recover a bit of stamina before sprinting again (prevents on/off flicker)
     if (this.stamina <= 0.01) this.exhausted = true;
     else if (this.stamina > 0.3) this.exhausted = false;

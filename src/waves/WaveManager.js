@@ -115,7 +115,7 @@ export class WaveManager {
     switch (this.state) {
       case 'intermission': {
         this.timer -= dt;
-        game.hud.setCenter(`Next wave in ${Math.ceil(this.timer)}  ·  <b>N</b> start now  ·  <b>TAB</b> upgrades`);
+        game.hud.setCenter(game.isTouch ? `Next wave in ${Math.ceil(this.timer)}` : `Next wave in ${Math.ceil(this.timer)}  ·  <b>N</b> start now  ·  <b>TAB</b> upgrades`);
         if (game.input.wasPressed('KeyN')) this.timer = 0;
         if (this.timer <= 0) { game.hud.setCenter(''); this.startWave(this.wave + 1); }
         break;

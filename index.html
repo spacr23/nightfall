@@ -2,7 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#05060a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Nightfall" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
     <title>NIGHTFALL: The Haunted Grounds</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,6 +24,12 @@
     <div id="damage-overlay" class="fx-layer"></div>
     <div id="flash-overlay" class="fx-layer"></div>
     <div id="scare-overlay" class="fx-layer"><div id="scare-face"></div></div>
+
+    <!-- Touch controls (iPhone / iPad), built by TouchControls.js -->
+    <div id="touch-ui" class="hidden"></div>
+
+    <!-- Portrait warning on phones -->
+    <div id="rotate-hint"><div class="rotate-icon">⟳</div><div>ROTATE YOUR DEVICE</div><small>Nightfall is played in landscape</small></div>
 
     <!-- HUD -->
     <div id="hud" class="screen hidden">
@@ -74,7 +87,8 @@
           <button id="btn-controls" class="menu-btn">CONTROLS</button>
           <button id="btn-credits" class="menu-btn">CREDITS</button>
         </nav>
-        <p class="menu-hint">Click PLAY to lock the mouse and begin. Survive the waves.</p>
+        <p class="menu-hint desktop-only">Click PLAY to lock the mouse and begin. Survive the waves.</p>
+        <p class="menu-hint touch-only">Tap PLAY to begin. Best played in landscape with sound on.</p>
         <div class="menu-lore" id="menu-lore"></div>
       </div>
       <div class="menu-stats" id="menu-stats"></div>
@@ -92,6 +106,7 @@
         <h2 class="menu-title">PAUSED</h2>
         <nav class="menu-nav">
           <button id="btn-resume" class="menu-btn primary">RESUME</button>
+          <button id="btn-pause-upgrades" class="menu-btn hidden">UPGRADES</button>
           <button id="btn-restart" class="menu-btn">RESTART</button>
           <button id="btn-pause-settings" class="menu-btn">SETTINGS</button>
           <button id="btn-pause-main" class="menu-btn">MAIN MENU</button>
@@ -127,7 +142,18 @@
     <div id="controls-menu" class="screen menu hidden">
       <div class="menu-inner compact wide">
         <h2 class="menu-title">CONTROLS</h2>
-        <table class="controls-table">
+        <table class="controls-table touch-only">
+          <tr><td>Left thumb</td><td>Move (push to the top edge to sprint)</td></tr>
+          <tr><td>Right thumb</td><td>Look around</td></tr>
+          <tr><td>FIRE</td><td>Shoot (drag on it to aim while firing)</td></tr>
+          <tr><td>AIM</td><td>Aim down sights (toggle)</td></tr>
+          <tr><td>JUMP · R · ⇄</td><td>Jump · reload · next weapon</td></tr>
+          <tr><td>USE</td><td>Appears near doors, items and notes</td></tr>
+          <tr><td>LIGHT · ☰</td><td>Flashlight · menu</td></tr>
+          <tr><td>UPGRADES · NEXT WAVE</td><td>Appear between waves</td></tr>
+          <tr><td>HUD weapon slots</td><td>Tap a number to switch weapon</td></tr>
+        </table>
+        <table class="controls-table desktop-only">
           <tr><td>W A S D</td><td>Move</td></tr>
           <tr><td>Mouse</td><td>Look</td></tr>
           <tr><td>Left mouse</td><td>Fire / attack</td></tr>

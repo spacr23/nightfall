@@ -259,3 +259,109 @@ body.low-health #vignette { opacity: 1; background: radial-gradient(ellipse at c
 
 #resume-menu { background: rgba(3,4,7,0.25); }
 .resume-click { position: absolute; inset: 0; width: 100%; height: 100%; background: transparent; border: 0; color: #e7ebf2; font-family: var(--font-title); font-size: 26px; letter-spacing: 8px; cursor: pointer; text-shadow: 0 0 18px rgba(183,51,42,0.5), 0 3px 10px #000; animation: pulse 1.6s infinite; }
+
+/* ===================================================================== touch / mobile */
+html, body { overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+.touch-only { display: none !important; }
+body.touch .touch-only { display: revert !important; }
+body.touch table.touch-only { display: table !important; }
+body.touch .desktop-only { display: none !important; }
+body.touch #game-canvas { touch-action: none; }
+body.touch .menu-btn { touch-action: manipulation; }
+
+#touch-ui { position: fixed; inset: 0; z-index: 5; touch-action: none; user-select: none; -webkit-user-select: none; }
+.tc-zone { position: absolute; top: 0; bottom: 0; }
+.tc-move { left: 0; width: 45%; }
+.tc-look { right: 0; width: 55%; }
+.tc-stick { position: absolute; left: 0; top: 0; width: 120px; height: 120px; border-radius: 50%; border: 2px solid rgba(220,228,240,0.28); background: radial-gradient(circle, rgba(10,12,18,0.15), rgba(10,12,18,0.45)); pointer-events: none; }
+.tc-knob { position: absolute; left: 35px; top: 35px; width: 50px; height: 50px; border-radius: 50%; background: rgba(220,228,240,0.45); box-shadow: 0 0 12px rgba(0,0,0,0.6); transition: background 0.15s; }
+.tc-knob.sprint { background: rgba(240,200,120,0.75); }
+
+.tc-btn {
+  position: absolute; border-radius: 50%; border: 2px solid rgba(220,228,240,0.35); background: rgba(8,10,16,0.45);
+  color: #e7ebf2; font-family: var(--font-ui); font-weight: 700; letter-spacing: 1px; font-size: 13px;
+  display: flex; align-items: center; justify-content: center; padding: 0; touch-action: none;
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+}
+.tc-btn.down, .tc-btn.on { background: rgba(183,51,42,0.55); border-color: rgba(255,120,100,0.8); }
+.tc-fire { right: calc(26px + env(safe-area-inset-right)); bottom: calc(26px + env(safe-area-inset-bottom)); width: 96px; height: 96px; font-size: 16px; border-color: rgba(220,90,70,0.6); }
+.tc-aim { right: calc(132px + env(safe-area-inset-right)); bottom: calc(30px + env(safe-area-inset-bottom)); width: 62px; height: 62px; }
+.tc-jump { right: calc(40px + env(safe-area-inset-right)); bottom: calc(134px + env(safe-area-inset-bottom)); width: 62px; height: 62px; }
+.tc-reload { right: calc(124px + env(safe-area-inset-right)); bottom: calc(110px + env(safe-area-inset-bottom)); width: 50px; height: 50px; font-size: 16px; }
+.tc-swap { right: calc(198px + env(safe-area-inset-right)); bottom: calc(36px + env(safe-area-inset-bottom)); width: 50px; height: 50px; font-size: 20px; }
+.tc-use { right: calc(120px + env(safe-area-inset-right)); bottom: calc(176px + env(safe-area-inset-bottom)); min-width: 96px; height: 44px; border-radius: 22px; padding: 0 14px; font-size: 12px; background: rgba(240,200,120,0.25); border-color: rgba(240,200,120,0.7); animation: pulse 1.4s infinite; }
+.tc-top { position: absolute; top: calc(10px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
+.tc-mini { height: 38px; min-width: 42px; padding: 0 12px; border-radius: 19px; border: 1px solid rgba(220,228,240,0.3); background: rgba(8,10,16,0.55); color: #e7ebf2; font-family: var(--font-ui); font-weight: 700; font-size: 13px; letter-spacing: 1.5px; touch-action: none; }
+.tc-mini.on { border-color: rgba(240,200,120,0.8); color: #f0d79a; }
+.tc-upg { border-color: rgba(240,200,120,0.8); color: #f0d79a; animation: playPulse 2s infinite; }
+.tc-next { border-color: rgba(183,51,42,0.8); }
+.tc-btn.hidden, .tc-mini.hidden { display: none; }
+
+/* HUD on touch: leave room for the controls, make weapon slots tappable */
+body.touch #hud-weapon-slots { pointer-events: auto; }
+body.touch #hud-weapon-slots span { width: 34px; height: 30px; font-size: 15px; }
+body.touch #hud-note { pointer-events: auto; }
+body.touch .hud-bottom-right { bottom: auto; top: calc(88px + env(safe-area-inset-top)); right: 0; }
+body.touch .hud-top-right .hud-sub { display: none; }
+body.touch .hud-top-right #hud-flashlight { display: none; }
+body.touch #hud-upgrade-hint { display: none !important; }
+body.touch #hud-interact { display: none !important; }
+body.touch #hud-center-msg { top: 18%; font-size: 15px; }
+.hud-top-left, .hud-top-right, .hud-bottom-left, .hud-bottom-right {
+  padding-left: max(26px, env(safe-area-inset-left)); padding-right: max(30px, env(safe-area-inset-right));
+}
+
+/* portrait warning (phones/tablets only) */
+#rotate-hint { display: none; position: fixed; inset: 0; z-index: 200; background: #05060a; color: #cfd6e2; align-items: center; justify-content: center; flex-direction: column; gap: 14px; font-family: var(--font-title); letter-spacing: 6px; font-size: 20px; text-align: center; padding: 24px; }
+#rotate-hint small { font-family: var(--font-ui); letter-spacing: 2px; font-size: 14px; color: var(--dim); }
+.rotate-icon { font-size: 64px; animation: spinHint 2.4s ease-in-out infinite; }
+@keyframes spinHint { 0%, 30% { transform: rotate(0deg); } 60%, 100% { transform: rotate(90deg); } }
+@media (orientation: portrait) { body.touch #rotate-hint { display: flex; } }
+
+/* small landscape screens (phones) */
+@media (max-height: 520px) {
+  .hud-top-left, .hud-top-right, .hud-bottom-left, .hud-bottom-right { padding-top: 10px; padding-bottom: 10px; }
+  .hud-big { font-size: 28px; }
+  .hud-label { font-size: 10px; letter-spacing: 2px; }
+  .hud-sub { font-size: 12px; }
+  .bar { width: 130px; height: 9px; }
+  .bar.thin { height: 4px; }
+  .bar-label { width: 56px; font-size: 10px; letter-spacing: 1px; }
+  .bar-text { font-size: 12px; width: 28px; }
+  .bar-wrap { margin-top: 4px; }
+  #hud-weapon-name { font-size: 14px; }
+  #hud-ammo { font-size: 28px; }
+  #hud-reserve { font-size: 18px; }
+  #hud-ammo .ammo-sep { font-size: 20px; }
+  #hud-bossbar { top: 54px; }
+  body.touch .hud-bottom-right { top: calc(58px + env(safe-area-inset-top)); }
+  .boss-name { font-size: 13px; letter-spacing: 4px; }
+  .banner-title { font-size: 38px; letter-spacing: 6px; }
+  .banner-sub { font-size: 13px; letter-spacing: 4px; }
+  #hud-msg { font-size: 14px; top: 26%; }
+  #hud-points-feed { top: 120px; }
+  .pts { font-size: 13px; }
+
+  .title { margin-bottom: 14px; }
+  .title-main { font-size: clamp(36px, 8vw, 64px); letter-spacing: 8px; }
+  .title-sub { font-size: 12px; letter-spacing: 6px; margin-top: 6px; }
+  .menu-inner { padding: 12px 20px; }
+  .menu-nav { gap: 7px; }
+  .menu-btn { font-size: 15px; padding: 8px 24px; min-width: 220px; letter-spacing: 3px; }
+  .menu-hint { margin-top: 10px; font-size: 12px; }
+  .menu-lore, .menu-footer { display: none; }
+  .menu-stats { font-size: 11px; bottom: 10px; left: max(16px, env(safe-area-inset-left)); }
+  .menu-title { font-size: 26px; margin-bottom: 12px; letter-spacing: 5px; }
+  .menu-inner.compact { padding: 16px 24px; min-width: 0; }
+  .settings-grid { gap: 8px; margin-bottom: 12px; }
+  .settings-grid label { grid-template-columns: 140px 1fr 44px; font-size: 14px; }
+  .controls-table { font-size: 13px; margin-bottom: 12px; }
+  .controls-table td { padding: 4px 8px; }
+  .stats { gap: 6px; margin-bottom: 14px; }
+  .stats > div { font-size: 14px; }
+  #upgrade-menu .menu-inner { padding: 14px 18px; }
+  #upgrade-menu .menu-title { font-size: 22px; margin-bottom: 4px; }
+  .upgrade-item { padding: 6px 10px; }
+  .upgrade-item .u-desc { font-size: 12px; }
+  .upgrade-item button { padding: 6px 10px; }
+}

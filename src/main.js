@@ -1,3 +1,7 @@
+// Safari < 16 lacks CanvasRenderingContext2D.roundRect (used by the procedural textures)
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function roundRect(x, y, w, h) { this.rect(x, y, w, h); };
+}
 import { Game } from './game/Game.js';
 
 const canvas = document.getElementById('game-canvas');

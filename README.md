@@ -47,6 +47,26 @@ Gebouwd met **Three.js**, **Vite** en de **Web Audio API**. Alle 3D-modellen, te
 | N | Volgende golf direct starten |
 | Esc | Pauze |
 
+## Spelen op iPhone en iPad
+
+De game herkent aanraakschermen automatisch en schakelt dan over op schermbediening:
+
+| Bediening | Actie |
+| --- | --- |
+| Linkerduim (overal op de linkerhelft) | Zwevende joystick om te lopen; helemaal naar voren duwen = sprinten |
+| Rechterduim | Vegen om rond te kijken |
+| FIRE | Schieten; slepen over de knop stuurt tegelijk het richten |
+| AIM · JUMP · R · ⇄ | Richten (aan/uit) · springen · herladen · volgend wapen |
+| USE | Verschijnt bij deuren, voorwerpen en notities |
+| Bovenbalk: LIGHT · UPGRADES · NEXT WAVE · ☰ | Zaklamp · upgrades en volgende golf (tussen golven) · menu |
+| Wapennummers rechtsboven | Tik om direct van wapen te wisselen |
+
+- Speel in liggende stand; in staande stand verschijnt een melding om het toestel te draaien.
+- Lichte richthulp trekt het vizier zacht naar de dichtstbijzijnde vijand terwijl je schiet of richt.
+- Telefoons starten op grafische kwaliteit *Low* en tablets op *Medium*; je kunt dit wijzigen in Settings.
+- Tip: kies in Safari **Deel → Zet op beginscherm** voor schermvullend spelen zonder adresbalk.
+- Testen op desktop: voeg `?touch` toe aan de URL om de aanraakbediening te forceren, of `?desktop` om hem uit te zetten.
+
 ## Lokaal draaien
 
 Vereist Node.js 20 of nieuwer.
@@ -119,7 +139,7 @@ src/
 
 ## Bekende beperkingen
 
-- Alleen voor desktop met toetsenbord en muis; touch wordt niet ondersteund.
+- Op iPhone en iPad is de game getest met gesimuleerde aanraakinvoer op iPhone- en iPad-formaat; prestaties hangen af van het toestel.
 - Alle modellen zijn gestileerd en procedureel opgebouwd uit primitieve vormen, niet gesculpt.
 - Botsingen gebruiken assen-uitgelijnde boxen; schuine objecten hebben een iets ruimere botsingsbox.
 - Vijandnavigatie gebruikt een grid van 1 m. Grote vijanden kunnen soms even tegen een hoek schuren voordat het anti-vastloopsysteem ingrijpt.

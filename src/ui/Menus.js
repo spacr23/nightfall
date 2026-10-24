@@ -32,6 +32,7 @@ export class Menus {
     for (const k in this.screens) this.screens[k].classList.toggle('hidden', k !== name);
     this.current = name;
     if (name === 'main') this.refreshStats();
+    if (name === 'pause') document.getElementById('btn-pause-upgrades').classList.toggle('hidden', !(this.game.waves && this.game.waves.inIntermission));
   }
 
   hideAll() { this.showScreen(null); }
@@ -56,12 +57,14 @@ export class Menus {
     this.click('btn-restart', () => g.restart());
     this.click('btn-pause-settings', () => { this.back = 'pause'; this.showScreen('settings'); });
     this.click('btn-pause-main', () => g.toMainMenu());
+    this.click('btn-pause-upgrades', () => g.openUpgrades());
     this.click('btn-go-restart', () => g.restart());
     this.click('btn-go-main', () => g.toMainMenu());
     this.click('btn-upgrade-close', () => g.closeUpgrades());
     // first interaction anywhere unlocks audio (menu ambience)
-    const unlock = () => { g.audio.unlock(); g.audio.startAmbience(); window.removeEventListener('pointerdown', unlock); };
+    const unlock = () => { g.audio.unlock(); g.audio.startAmbience(); window.removeEventListener('pointerdown', unlock); window.removeEventListener('touchend', unlock); };
     window.addEventListener('pointerdown', unlock);
+    window.addEventListener('touchend', unlock); // iOS Safari only unlocks audio on touchend
   }
 
   initSettings() {

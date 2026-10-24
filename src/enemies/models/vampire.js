@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { sculptSphere, limb, skinTexture, clothTexture, cached, smooth } from '../Sculpt.js';
-import { prim, mesh, group, glowingEyes, std, clothPanel } from './common.js';
+import { prim, mesh, group, std, clothPanel } from './common.js';
+import { buildVampireHead } from './vampireFace.js';
 
 /**
  * Gothic aristocrat vampire.
@@ -9,39 +10,6 @@ import { prim, mesh, group, glowingEyes, std, clothPanel } from './common.js';
  * a high-collared cape with crimson lining that billows when running, long pale fingers ending in claws.
  * The Ancient variant is bald, grey and bat-eared, wears crimson and stands taller and more hunched.
  */
-
-function headGeometry(ancient) {
-  return cached(`vampHead${ancient}`, () => sculptSphere(40, 32, (v) => {
-    let x = v.x * 2, y = v.y * 2, z = v.z * 2;
-    // long, narrow skull with a sharp tapered jaw
-    const below = smooth(0.15, -1, y);
-    x *= 1 - 0.5 * below * below - 0.12 * below;
-    z *= 1 - 0.14 * below;
-    // temples pinch in slightly
-    if (y > 0.3) x *= 1 - 0.08 * smooth(0.3, 0.8, y);
-    if (z < 0) z *= 1.1;
-    // flatter face plane
-    if (z > 0.35) z = 0.35 + (z - 0.35) * 0.72;
-    // hollow cheeks
-    const cheek = smooth(0.25, 0.6, Math.abs(x)) * smooth(-0.75, -0.3, y) * (1 - smooth(-0.3, 0.05, y)) * smooth(0.1, 0.5, z);
-    x *= 1 - 0.12 * cheek;
-    // high cheekbones
-    const bone = smooth(0.35, 0.65, Math.abs(x)) * (1 - Math.abs(y + 0.1) / 0.18 > 0 ? 1 - Math.abs(y + 0.1) / 0.18 : 0) * smooth(0.2, 0.6, z);
-    x *= 1 + 0.06 * bone;
-    // heavy brow ridge
-    const brow = smooth(0.08, 0.2, y) * (1 - smooth(0.2, 0.34, y)) * smooth(0.45, 0.7, z);
-    z += 0.08 * brow;
-    // deep eye sockets
-    for (const sx of [-0.34, 0.34]) {
-      const d = Math.hypot(x - sx, y - 0.06, (z - 0.72) * 0.8);
-      if (d < 0.3) { const k = 1 - d / 0.3; z -= 0.14 * k * k; }
-    }
-    // pointed chin
-    if (y < -0.7 && z > 0.2) z += 0.07 * smooth(-0.7, -0.95, y);
-    if (ancient) { y *= 1.06; if (y > 0.4) z *= 1.04; }
-    v.set(x / 2, y / 2, z / 2);
-  }));
-}
 
 /** Torso texture (lathe UV: u=0.5 is the front). Tailcoat with open front: waistcoat, shirt, lace jabot, lapels. */
 function coatTexture(ancient) {
@@ -122,7 +90,7 @@ function hand(parent, skin, clawMat, side, ancient) {
 
 export function buildVampire(opts = {}) {
   const ancient = !!opts.ancient;
-  const skin = std({ map: skinTexture(ancient ? '#b8b4bd' : '#dcd8d4', ancient ? 'rgba(80,40,110,0.4)' : 'rgba(80,70,130,0.16)'), roughness: 0.55, emissive: 0x0c0e14 });
+  const skin = std({ map: skinTexture(ancient ? '#b3aeb8' : '#cfcac5', ancient ? 'rgba(80,40,110,0.4)' : 'rgba(80,70,130,0.16)'), roughness: 0.55, emissive: 0x0c0e14 });
   const coat = std({ map: coatTexture(ancient), roughness: 0.7, emissive: 0x000000 });
   const sleeve = std({ map: clothTexture(ancient ? '#3a0a10' : '#0f0d12'), roughness: 0.75, emissive: 0x000000 });
   const trousers = std({ map: clothTexture('#141218'), roughness: 0.85, emissive: 0x000000 });
@@ -174,47 +142,21 @@ export function buildVampire(opts = {}) {
   }
   // neck, high collar
   P.neck = group(P.torso, [0, 0.62, 0]);
-  mesh(cached('vampNeck', () => limb(0.12, 0.042, 0.05, 0, 10)), skin, P.neck, { p: [0, 0.11, 0], shadow: false });
+  // neck runs up into the head so there is no gap under the jaw
+  mesh(cached('vampNeck2', () => limb(0.2, 0.034, 0.044, 0, 12)), skin, P.neck, { p: [0, 0.19, -0.01], shadow: false });
+  // white silk stock wrapped high around the throat, with a crimson cravat knot
+  mesh(cached('vampStock', () => limb(0.09, 0.05, 0.056, 0.05, 16)), lace, P.neck, { p: [0, 0.095, -0.004], shadow: false });
+  mesh(prim.sphere, std({ color: ancient ? 0x1a0508 : 0x6a0812, roughness: 0.4, emissive: 0x000000 }), P.neck, { s: [0.04, 0.03, 0.025], p: [0, 0.03, 0.045], shadow: false });
   const collarG = cached('vampCollar', () => { const g = new THREE.CylinderGeometry(0.17, 0.1, 0.27, 20, 1, true, Math.PI * 0.32, Math.PI * 1.36); g.translate(0, 0.11, 0); return g; });
   mesh(collarG, capeOut, P.neck, { s: [1, ancient ? 1.35 : 1, 0.9], p: [0, 0.0, -0.03], r: [-0.22, 0, 0] });
   mesh(collarG, capeIn, P.neck, { s: [0.98, ancient ? 1.33 : 0.98, 0.88], p: [0, 0.0, -0.03], r: [-0.22, 0, 0], shadow: false });
 
-  // ---------------------------------------------------------------- head
-  P.head = group(P.neck, [0, 0.18, 0.015]);
-  const headScale = ancient ? [0.2, 0.29, 0.23] : [0.19, 0.255, 0.215];
-  const head = mesh(headGeometry(ancient), skin, P.head, { s: headScale, p: [0, 0.05, 0] });
-  const fz = headScale[2] * 0.42; // face plane depth
-  // aquiline nose
-  mesh(cached('vampNose', () => sculptSphere(10, 8, (v) => { v.z *= 0.6; if (v.y < 0) v.z *= 1 + (-v.y) * 1.4; })), skin, P.head, { s: [0.022, 0.06, 0.03], p: [0, 0.035, fz + 0.005], r: [-0.15, 0, 0], shadow: false });
-  // brows: sharp, angled down toward the nose
-  for (const sd of [-1, 1]) mesh(prim.box, hair, P.head, { s: [0.045, 0.007, 0.012], p: [sd * 0.035, 0.088, fz - 0.002], r: [0, sd * -0.3, sd * 0.32], shadow: false });
-  // sunken eyes: dark sclera + glowing iris
-  for (const sd of [-1, 1]) mesh(prim.sphereLow, mouthM, P.head, { s: [0.022, 0.013, 0.01], p: [sd * 0.033, 0.064, fz - 0.012], shadow: false });
-  const eyes = glowingEyes(P.head, ancient ? 0xff1010 : 0xff2418, 0.033, 0.064, fz - 0.006, ancient ? 0.013 : 0.011, 0.25);
-  // mouth with upper lip and fangs; jaw carries the lower lip and lower teeth
-  mesh(prim.sphere, lips, P.head, { s: [0.04, 0.008, 0.012], p: [0, -0.02, fz - 0.006], shadow: false });
-  for (const sd of [-1, 1]) mesh(prim.cone, bone, P.head, { s: [0.006, 0.026, 0.006], p: [sd * 0.012, -0.033, fz - 0.004], r: [Math.PI, 0, 0], shadow: false });
-  for (let i = -1; i <= 1; i++) mesh(prim.box, bone, P.head, { s: [0.006, 0.007, 0.004], p: [i * 0.0065, -0.025, fz - 0.006], shadow: false });
-  P.jaw = group(P.head, [0, -0.026, fz - 0.01]);
-  mesh(prim.sphereLow, mouthM, P.jaw, { s: [0.032, 0.016, 0.01], p: [0, -0.007, 0.0], shadow: false });
-  mesh(prim.sphere, lips, P.jaw, { s: [0.036, 0.008, 0.012], p: [0, -0.016, 0.003], shadow: false });
-  for (const sd of [-1, 1]) mesh(prim.cone, bone, P.jaw, { s: [0.005, 0.016, 0.005], p: [sd * 0.016, -0.01, 0.006], shadow: false });
-  // blood dripping from the corner of the mouth
-  mesh(prim.capsule, blood, P.head, { s: [0.004, 0.012, 0.004], p: [0.02, -0.04, fz - 0.003], shadow: false });
-  mesh(prim.sphereLow, blood, P.head, { s: [0.007, 0.009, 0.006], p: [0.021, -0.058, fz - 0.003], shadow: false });
-  // pointed ears
-  const earG = cached('vampEar', () => sculptSphere(10, 8, (v) => { v.z *= 0.25; if (v.y > 0) { v.x *= 1 - v.y * 1.2; v.y *= 2.2; } }));
-  for (const sd of [-1, 1]) mesh(earG, skin, P.head, { s: ancient ? [0.07, 0.09, 0.07] : [0.045, 0.06, 0.05], p: [sd * headScale[0] * 0.48, 0.06, -0.012], r: [-0.25, sd * -0.5, sd * -0.45], shadow: false });
-  // slicked-back hair with widow's peak
-  if (!ancient) {
-    const hairG = cached('vampHair', () => sculptSphere(28, 20, (v) => { if (v.y < -0.05 && v.z > -0.1) v.multiplyScalar(0.92); if (v.z < 0) v.z *= 1.12; }));
-    const capG = cached('vampHairCap', () => { const g = new THREE.SphereGeometry(0.5, 28, 14, 0, Math.PI * 2, 0, 1.45); return g; });
-    mesh(capG, hair, P.head, { s: [0.2, 0.2, 0.23], p: [0, 0.07, -0.006], r: [-0.12, 0, 0] });
-    mesh(hairG, hair, P.head, { s: [0.17, 0.12, 0.13], p: [0, 0.045, -0.075] });
-  } else {
-    // bulging veins on the bald scalp
-    for (let i = 0; i < 4; i++) mesh(prim.capsule, std({ color: 0x5a4a6a, roughness: 0.5 }), P.head, { s: [0.005, 0.06, 0.005], p: [(i - 1.5) * 0.03, 0.15, -0.02 + (i % 2) * 0.03], r: [0.9, 0, (i - 1.5) * 0.3], shadow: false });
-  }
+  // ---------------------------------------------------------------- head (sculpted face, see vampireFace.js)
+  P.head = group(P.neck, [0, 0.155, 0.012]);
+  const face = buildVampireHead(P.head, { ancient, eyeColor: ancient ? 0xff1010 : 0xff2418 });
+  const head = face.head;
+  const eyes = face.eyes;
+  P.jaw = face.jaw;
 
   // ---------------------------------------------------------------- arms
   const upperG = cached('vampUpper', () => limb(0.3, 0.052, 0.045, 0.08, 10));
@@ -242,11 +184,13 @@ export function buildVampire(opts = {}) {
 
   const scale = ancient ? 1.16 : 1.0;
   root.scale.setScalar(scale);
-  const mats = [skin, coat, sleeve, trousers, capeOut, capeIn, hair, lips];
+  const mats = [skin, face.skin, coat, sleeve, trousers, capeOut, capeIn, hair, lips];
   return {
     root, parts: P, eyes, mats, headMesh: head, bodyMesh: body, heightScale: scale,
     /** cloth simulation-lite: cape billows with speed, tails swing with the stride */
     update(dt, gait, phase, t) {
+      // the jaw 'opens' by stretching the dark mouth shape (driven by Enemy.animate's jaw rotation)
+      P.jaw.scale.y = 1 + Math.max(0, P.jaw.rotation.x - 0.1) * 9; P.jaw.rotation.x = 0;
       capePanel.update(t, gait, Math.min(1, gait * 0.9));
       for (const tl of tails) tl.panel.update(t + tl.mesh.position.x * 3, gait, gait * 0.5 + Math.abs(Math.sin(phase)) * 0.15 * gait);
     },

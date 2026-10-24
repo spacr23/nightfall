@@ -18,6 +18,7 @@ import { Scares } from '../effects/Scares.js';
 import { HUD } from '../ui/HUD.js';
 import { Menus } from '../ui/Menus.js';
 import { buildGhost, glowTexture } from '../enemies/EnemyModels.js';
+import { TouchControls, isTouchDevice } from './TouchControls.js';
 
 const FOG_COLOR = 0x0a0e17;
 
@@ -29,7 +30,11 @@ const FOG_COLOR = 0x0a0e17;
 export class Game {
   constructor(canvas) {
     this.canvas = canvas;
-    this.settings = new Settings();
+    this.isTouch = isTouchDevice();
+    const phone = Math.min(window.screen.width, window.screen.height) < 600;
+    // touch devices start on lighter graphics (unless the player already saved a choice)
+    this.settings = new Settings(this.isTouch ? { quality: phone ? 'low' : 'medium', fov: phone ? 75 : 80 } : {});
+    if (this.isTouch) document.body.classList.add('touch');
     this.state = new GameState();
     this.time = 0;
     this.enemies = [];
@@ -47,7 +52,7 @@ export class Game {
   initRenderer() {
     const q = this.settings.quality;
     const r = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: this.settings.get('quality') !== 'low', powerPreference: 'high-performance' });
-    r.setPixelRatio(q.pixelRatio);
+    r.setPixelRatio(this.pixelRatio());
     r.setSize(window.innerWidth, window.innerHeight, false);
     r.outputColorSpace = THREE.SRGBColorSpace;
     r.toneMapping = THREE.ACESFilmicToneMapping;
@@ -93,6 +98,7 @@ export class Game {
     this.scares = new Scares(this);
     this.hud = new HUD(this);
     this.menus = new Menus(this);
+    this.touch = this.isTouch ? new TouchControls(this) : null;
     this.buildMenuScene();
     this.interactGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: 0xffe2a0, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
     this.interactGlow.visible = false;
@@ -208,7 +214,7 @@ export class Game {
   }
 
   openUpgrades() {
-    if (!this.state.is('playing') || !this.waves.inIntermission) return;
+    if ((!this.state.is('playing') && !this.state.is('paused')) || !this.waves.inIntermission) return;
     this.state.set('upgrade');
     this.input.releaseLock();
     this.menus.renderUpgrades();
@@ -254,7 +260,7 @@ export class Game {
     if (k === 'fov') { this.camera.fov = this.settings.get('fov'); this.camera.updateProjectionMatrix(); }
     if (k === 'quality') {
       const q = this.settings.quality;
-      this.renderer.setPixelRatio(q.pixelRatio);
+      this.renderer.setPixelRatio(this.pixelRatio());
       this.renderer.shadowMap.enabled = q.shadows;
       this.moon.castShadow = q.shadows;
       this.scene.fog.density = q.fogDensity;
@@ -262,6 +268,14 @@ export class Game {
       this.scene.traverse((o) => { if (o.material) { const ms = Array.isArray(o.material) ? o.material : [o.material]; ms.forEach((m) => { m.needsUpdate = true; }); } });
       this.onResize();
     }
+  }
+
+  /** Render resolution: touch screens have very high DPR, so cap it per quality level. */
+  pixelRatio() {
+    const q = this.settings.get('quality');
+    if (!this.isTouch) return this.settings.quality.pixelRatio;
+    const cap = { low: 1.15, medium: 1.5, high: 2 }[q] || 1.25;
+    return Math.min(window.devicePixelRatio || 1, cap);
   }
 
   onResize() {
@@ -339,6 +353,7 @@ export class Game {
     this.time += dt;
     const st = this.state;
     if (st.is('menu')) {
+      if (this.touch) this.touch.show(false);
       this.updateMenu(dt);
       this.world.update(dt, this.time, this.camera.position);
       this.lightPool.update(dt, this.time, this.camera.position);
@@ -346,6 +361,7 @@ export class Game {
       this.input.endFrame();
       return;
     }
+    if (this.touch) this.touch.show(st.is('playing'));
     if (!st.is('playing')) {
       if (st.is('gameover')) {
         // keep the world alive behind the death screen
@@ -360,6 +376,7 @@ export class Game {
     const player = this.player;
     // closing a note takes priority over interaction
     if (this.hud.noteOpen && (input.wasPressed('KeyE') || input.wasPressed('Escape'))) { this.hud.showNote(null); input.pressedThisFrame.delete('KeyE'); }
+    if (this.touch) this.touch.update(dt);
     player.controller.update(dt, this.weapons.ads);
     player.update(dt);
     if (input.wasPressed('KeyF')) player.toggleFlashlight();
