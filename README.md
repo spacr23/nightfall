@@ -67,11 +67,23 @@ De build komt in `dist/`. Vite gebruikt `base: './'`, dus alle paden zijn relati
 
 ## Publiceren op GitHub Pages
 
-De workflow in `.github/workflows/deploy.yml` bouwt en publiceert automatisch bij elke push naar `main`.
+Live: **https://spacr23.github.io/nightfall/**
 
-1. Push de repository naar GitHub.
+Er zijn twee manieren om te publiceren:
+
+**A. Automatisch met GitHub Actions (aanbevolen).** De workflow in `.github/workflows/deploy.yml` bouwt en publiceert bij elke push naar `main`.
+
+1. Push de repository naar GitHub. Je token heeft daarvoor de `workflow`-scope nodig (`gh auth refresh -h github.com -s workflow`).
 2. Ga naar **Settings → Pages** en kies bij *Source* voor **GitHub Actions**.
 3. Na de eerste succesvolle run staat het spel op `https://<gebruikersnaam>.github.io/<repository>/`.
+
+**B. Handmatig via de `gh-pages`-branch.** Werkt zonder Actions:
+
+```bash
+npm run deploy
+```
+
+Dit bouwt het project en zet `dist/` op de branch `gh-pages`. Kies in **Settings → Pages** dan *Deploy from a branch* met `gh-pages` en `/ (root)`.
 
 ## Projectstructuur
 
