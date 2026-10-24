@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NIGHTFALL: The Haunted Grounds</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/styles/main.css" />
+  </head>
+  <body>
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Screen-space overlays -->
+    <div id="vignette" class="fx-layer"></div>
+    <div id="damage-overlay" class="fx-layer"></div>
+    <div id="flash-overlay" class="fx-layer"></div>
+    <div id="scare-overlay" class="fx-layer"><div id="scare-face"></div></div>
+
+    <!-- HUD -->
+    <div id="hud" class="screen hidden">
+      <div id="crosshair"><span></span><span></span><span></span><span></span><i></i></div>
+      <div id="hitmarker"></div>
+
+      <div class="hud-top-left">
+        <div class="hud-label">WAVE</div>
+        <div id="hud-wave" class="hud-big">1</div>
+        <div class="hud-sub"><span id="hud-enemies">0</span> REMAINING</div>
+      </div>
+
+      <div class="hud-top-right">
+        <div class="hud-label">POINTS</div>
+        <div id="hud-points" class="hud-big">0</div>
+        <div class="hud-sub" id="hud-flashlight">FLASHLIGHT OFF</div>
+        <div class="hud-sub" id="hud-zone">THE HAUNTED GROUNDS</div>
+      </div>
+
+      <div class="hud-bottom-left">
+        <div class="bar-wrap"><div class="bar-label">HEALTH</div><div class="bar"><div id="hud-health-bar" class="bar-fill health"></div></div><div id="hud-health-text" class="bar-text">100</div></div>
+        <div class="bar-wrap"><div class="bar-label">ARMOR</div><div class="bar"><div id="hud-armor-bar" class="bar-fill armor"></div></div><div id="hud-armor-text" class="bar-text">0</div></div>
+        <div class="bar-wrap"><div class="bar-label">STAMINA</div><div class="bar thin"><div id="hud-stamina-bar" class="bar-fill stamina"></div></div></div>
+      </div>
+
+      <div class="hud-bottom-right">
+        <div id="hud-weapon-name">PISTOL</div>
+        <div id="hud-ammo"><span id="hud-mag">12</span><span class="ammo-sep">/</span><span id="hud-reserve">48</span></div>
+        <div id="hud-weapon-slots">
+          <span data-slot="1">1</span><span data-slot="2">2</span><span data-slot="3">3</span><span data-slot="4">4</span><span data-slot="5">5</span>
+        </div>
+      </div>
+
+      <div id="hud-bossbar" class="hidden"><div class="boss-name">THE NIGHTFATHER</div><div class="boss-bar"><div class="boss-fill"></div></div></div>
+      <div id="hud-points-feed"></div>
+      <div id="hud-msg"></div>
+      <div id="hud-damage-dir"></div>
+      <div id="hud-center-msg" class="hidden"></div>
+      <div id="hud-wave-banner" class="hidden"><div class="banner-title">WAVE 1</div><div class="banner-sub">THEY ARE COMING</div></div>
+      <div id="hud-interact" class="hidden">[E] Open door</div>
+      <div id="hud-upgrade-hint" class="hidden">Press <b>TAB</b> to open upgrades</div>
+      <div id="hud-note" class="hidden"><div id="hud-note-text"></div><div class="note-close">[E] close</div></div>
+    </div>
+
+    <!-- Main menu -->
+    <div id="main-menu" class="screen menu">
+      <canvas id="menu-embers"></canvas>
+      <div class="menu-fog"></div>
+      <div class="menu-fog two"></div>
+      <div class="menu-inner" id="menu-inner">
+        <h1 class="title"><span class="title-main">NIGHTFALL</span><span class="title-sub">THE HAUNTED GROUNDS</span></h1>
+        <nav class="menu-nav">
+          <button id="btn-play" class="menu-btn primary">PLAY</button>
+          <button id="btn-settings" class="menu-btn">SETTINGS</button>
+          <button id="btn-controls" class="menu-btn">CONTROLS</button>
+          <button id="btn-credits" class="menu-btn">CREDITS</button>
+        </nav>
+        <p class="menu-hint">Click PLAY to lock the mouse and begin. Survive the waves.</p>
+        <div class="menu-lore" id="menu-lore"></div>
+      </div>
+      <div class="menu-stats" id="menu-stats"></div>
+      <div class="menu-footer">v1.0 · procedurally generated horror · best with headphones</div>
+    </div>
+
+    <!-- Pause menu -->
+    <div id="pause-menu" class="screen menu hidden">
+      <div class="menu-inner compact">
+        <h2 class="menu-title">PAUSED</h2>
+        <nav class="menu-nav">
+          <button id="btn-resume" class="menu-btn primary">RESUME</button>
+          <button id="btn-restart" class="menu-btn">RESTART</button>
+          <button id="btn-pause-settings" class="menu-btn">SETTINGS</button>
+          <button id="btn-pause-main" class="menu-btn">MAIN MENU</button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div id="settings-menu" class="screen menu hidden">
+      <div class="menu-inner compact wide">
+        <h2 class="menu-title">SETTINGS</h2>
+        <div class="settings-grid">
+          <label>Master volume <input id="set-master" type="range" min="0" max="100" value="80" /><span class="val"></span></label>
+          <label>Sound effects <input id="set-sfx" type="range" min="0" max="100" value="90" /><span class="val"></span></label>
+          <label>Music <input id="set-music" type="range" min="0" max="100" value="60" /><span class="val"></span></label>
+          <label>Mouse sensitivity <input id="set-sens" type="range" min="10" max="200" value="100" /><span class="val"></span></label>
+          <label>Field of view <input id="set-fov" type="range" min="60" max="110" value="80" /><span class="val"></span></label>
+          <label>Graphics quality
+            <select id="set-quality">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </label>
+          <label class="check">Invert mouse Y <input id="set-invert" type="checkbox" /></label>
+          <label class="check">Head bob <input id="set-bob" type="checkbox" checked /></label>
+        </div>
+        <button id="btn-settings-back" class="menu-btn">BACK</button>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div id="controls-menu" class="screen menu hidden">
+      <div class="menu-inner compact wide">
+        <h2 class="menu-title">CONTROLS</h2>
+        <table class="controls-table">
+          <tr><td>W A S D</td><td>Move</td></tr>
+          <tr><td>Mouse</td><td>Look</td></tr>
+          <tr><td>Left mouse</td><td>Fire / attack</td></tr>
+          <tr><td>Right mouse</td><td>Aim down sights</td></tr>
+          <tr><td>Shift</td><td>Sprint</td></tr>
+          <tr><td>Space</td><td>Jump</td></tr>
+          <tr><td>R</td><td>Reload</td></tr>
+          <tr><td>F</td><td>Flashlight</td></tr>
+          <tr><td>E</td><td>Interact / pick up</td></tr>
+          <tr><td>1 2 3 4 5 / wheel</td><td>Switch weapon</td></tr>
+          <tr><td>TAB</td><td>Upgrades (between waves)</td></tr>
+          <tr><td>Esc</td><td>Pause</td></tr>
+        </table>
+        <button id="btn-controls-back" class="menu-btn">BACK</button>
+      </div>
+    </div>
+
+    <!-- Credits -->
+    <div id="credits-menu" class="screen menu hidden">
+      <div class="menu-inner compact">
+        <h2 class="menu-title">CREDITS</h2>
+        <p class="credits-text">
+          NIGHTFALL: THE HAUNTED GROUNDS<br /><br />
+          Built with Three.js, Vite and the Web Audio API.<br />
+          All 3D models, materials and sounds are generated procedurally at runtime.<br />
+          No external assets were used.<br /><br />
+          Fonts: Cinzel &amp; Rajdhani (Google Fonts, OFL).
+        </p>
+        <button id="btn-credits-back" class="menu-btn">BACK</button>
+      </div>
+    </div>
+
+    <!-- Upgrades -->
+    <div id="upgrade-menu" class="screen menu hidden">
+      <div class="menu-inner compact wide">
+        <h2 class="menu-title">UPGRADES</h2>
+        <div class="upgrade-points">POINTS: <span id="upgrade-points">0</span></div>
+        <div id="upgrade-list" class="upgrade-list"></div>
+        <button id="btn-upgrade-close" class="menu-btn primary">BACK TO THE FIGHT</button>
+      </div>
+    </div>
+
+    <!-- Game over -->
+    <div id="gameover-menu" class="screen menu hidden">
+      <div class="menu-inner compact">
+        <h2 class="menu-title blood">YOU DIED</h2>
+        <div class="stats">
+          <div><span class="stat-label">Wave reached</span><span id="go-wave" class="stat-val">1</span></div>
+          <div><span class="stat-label">Enemies slain</span><span id="go-kills" class="stat-val">0</span></div>
+          <div><span class="stat-label">Headshots</span><span id="go-headshots" class="stat-val">0</span></div>
+          <div><span class="stat-label">Points earned</span><span id="go-points" class="stat-val">0</span></div>
+        </div>
+        <nav class="menu-nav">
+          <button id="btn-go-restart" class="menu-btn primary">RESTART</button>
+          <button id="btn-go-main" class="menu-btn">MAIN MENU</button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="screen"><div class="loading-text">SUMMONING THE GROUNDS…</div></div>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
