@@ -190,6 +190,15 @@ export class TouchControls {
     const g = this.game;
     const cam = g.camera;
     const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);
+    // already on target? then don't pull the view anywhere (never drag aim off a close enemy)
+    let onTarget = null, onT = Infinity;
+    for (const e of g.enemies) {
+      if (!e.alive) continue;
+      const h = e.hitTest(cam.position, fwd, 45);
+      if (h && h.t < onT) { onT = h.t; onTarget = e; }
+    }
+    if (onTarget) { this.assistLocked = true; return null; }
+    this.assistLocked = false;
     let best = null, bestAng = 0.11;
     for (const e of g.enemies) {
       if (!e.alive) continue;

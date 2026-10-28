@@ -2,7 +2,11 @@
 if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
   CanvasRenderingContext2D.prototype.roundRect = function roundRect(x, y, w, h) { this.rect(x, y, w, h); };
 }
+import * as THREE from 'three';
 import { Game } from './game/Game.js';
+
+// expose Three.js for console debugging (?debug)
+if (new URLSearchParams(window.location.search).has('debug')) window.__THREE = THREE;
 
 const canvas = document.getElementById('game-canvas');
 

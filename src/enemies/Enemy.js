@@ -4,6 +4,8 @@ import { layerAt } from '../game/NavGrid.js';
 
 let UID = 1;
 const _v = new THREE.Vector3();
+const _ray = new THREE.Raycaster();
+const _hits = [];
 
 /**
  * Base enemy: stats, body physics, hit detection (head/body spheres), damage, animation and death.
@@ -45,6 +47,14 @@ export class Enemy {
     this.ai = new EnemyAI(this);
     this.root.position.copy(pos);
     this.root.traverse((o) => { if (o.isMesh) o.userData.enemy = this; });
+    // Precise hit detection: rays are tested against the visible meshes, tagged by body part.
+    this.hitMeshes = [];
+    this.hitPart = new Map();
+    const tag = (obj, part) => obj && obj.traverse((c) => { if (c.isMesh) this.hitPart.set(c, part); });
+    this.root.traverse((o) => { if (o.isMesh && o.visible) this.hitMeshes.push(o); });
+    tag(this.parts.legL, 'legs'); tag(this.parts.legR, 'legs');
+    tag(this.parts.head, 'head');
+    this.hitRadius = (cfg.height * 0.75 + 0.5) * model.heightScale; // coarse pre-check around the body centre
     this.baseEmissive = model.mats.map((m) => (m.emissive ? m.emissive.clone() : null));
     this.baseOpacity = model.mats.map((m) => m.opacity ?? 1);
     if (model.transparent) for (const m of model.mats) m.transparent = true;
@@ -94,21 +104,24 @@ export class Enemy {
     });
   }
 
-  /** Ray test against head and body spheres. Returns {t, part} or null. */
+  /**
+   * Ray test against the enemy's visible meshes ("what you see is what you hit").
+   * A cheap sphere test around the body rejects most rays first. Returns {t, part} or null.
+   */
   hitTest(o, d, maxT) {
     if (!this.alive) return null;
-    let best = null;
-    for (const [s, part] of [[this.headSphere, 'head'], [this.bodySphere, 'body']]) {
-      const t = raySphereT(o, d, s.c, s.r);
-      if (t >= 0 && t < maxT && (!best || t < best.t)) best = { t, part };
+    if (raySphereT(o, d, this.bodySphere.c, this.hitRadius) < 0) return null;
+    _ray.set(o, d);
+    _ray.near = 0; _ray.far = maxT;
+    _hits.length = 0;
+    _ray.intersectObjects(this.hitMeshes, false, _hits);
+    for (const h of _hits) {
+      if (!h.object.visible) continue;
+      const m = h.object.material;
+      if (m && m.transparent && m.opacity < 0.05) continue; // faded out
+      return { t: h.distance, part: this.hitPart.get(h.object) || 'body' };
     }
-    // legs: a cheap extra sphere between body and feet
-    if (!best) {
-      _v.copy(this.body.pos); _v.y += this.cfg.height * 0.28 * this.model.heightScale;
-      const t = raySphereT(o, d, _v, this.bodySphere.r * 0.8);
-      if (t >= 0 && t < maxT) best = { t, part: 'legs' };
-    }
-    return best;
+    return null;
   }
 
   /**
